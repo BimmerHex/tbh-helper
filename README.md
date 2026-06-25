@@ -12,7 +12,7 @@
 
 👉 **[Download the latest release](https://github.com/selimlendiniz/tbh-helper/releases/latest)**
 
-1. Download `TBH.Helper_x.x.x_x64-setup.exe` from the Assets section
+1. Download `TBH.Helper_0.0.1_x64-setup.exe` from the Assets section
 2. Run the installer
 3. Launch **TBH Helper** from your Start Menu or Desktop shortcut
 
@@ -159,3 +159,4 @@ MIT — feel free to use, modify, and distribute.
 ## Disclaimer
 
 This is an **unofficial** third-party tool. It is not affiliated with, endorsed by, or connected to TesseractStudio or Valve Corporation. Use at your own risk.
+
