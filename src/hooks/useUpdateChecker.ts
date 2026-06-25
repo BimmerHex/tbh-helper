@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
+import { getVersion } from "@tauri-apps/api/app";
 
 // GitHub repo bilgilerini buraya gir
-const GITHUB_OWNER = "YOUR_GITHUB_USERNAME";
-const GITHUB_REPO = "tbhhelper";
-const CURRENT_VERSION = "0.1.0"; // tauri.conf.json ile senkronize tut
+const GITHUB_OWNER = "selimlendiniz";
+const GITHUB_REPO = "tbh-helper";
 
 interface Release {
   tag_name: string;
@@ -36,13 +36,14 @@ export function useUpdateChecker() {
 
     const check = async () => {
       try {
+        const currentVersion = await getVersion();
         const res = await fetch(
           `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`,
           { headers: { Accept: "application/vnd.github+json" } }
         );
         if (!res.ok) return;
         const release: Release = await res.json();
-        if (isNewer(release.tag_name, CURRENT_VERSION)) {
+        if (isNewer(release.tag_name, currentVersion)) {
           setUpdateAvailable(release);
         }
       } catch (e) {
