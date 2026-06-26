@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { useUpdateChecker } from "../hooks/useUpdateChecker";
 
-export const UpdateBanner: React.FC = () => {
-  const { updateAvailable } = useUpdateChecker();
+interface UpdateBannerProps {
+  updateAvailable: any;
+}
+
+export const UpdateBanner: React.FC<UpdateBannerProps> = ({ updateAvailable }) => {
   const [dismissed, setDismissed] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +22,7 @@ export const UpdateBanner: React.FC = () => {
 
   const startAutoUpdate = async () => {
     setError(null);
-    const exeAsset = updateAvailable.assets?.find(asset => asset.name.endsWith(".exe"));
+    const exeAsset = updateAvailable.assets?.find((asset: any) => asset.name.endsWith(".exe"));
     if (!exeAsset) {
       openRelease();
       return;
@@ -123,7 +125,7 @@ export const UpdateBanner: React.FC = () => {
                   cursor: "pointer",
                 }}
               >
-                Release Page
+                Yenilikleri Gör
               </button>
             </div>
           )}

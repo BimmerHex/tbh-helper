@@ -14,6 +14,7 @@ interface SettingsModalProps {
   onSetRefreshInterval: (minutes: number) => void;
   newItemAlertThreshold: number;
   onSetNewItemAlertThreshold: (val: number) => void;
+  updateAvailable: any;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -29,8 +30,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onSetRefreshInterval,
   newItemAlertThreshold,
   onSetNewItemAlertThreshold,
+  updateAvailable,
 }) => {
   const [appVersion, setAppVersion] = useState<string>("...");
+  const [downloading, setDownloading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -39,6 +43,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       .then(setAppVersion)
       .catch(() => setAppVersion("0.0.3"));
   }, [isOpen]);
+
+  const openRelease = async () => {
+    if (!updateAvailable) return;
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("open_in_browser", { url: updateAvailable.html_url });
+    } catch {
+      window.open(updateAvailable.html_url, "_blank");
+    }
+  };
+
+  const startAutoUpdate = async () => {
+    if (!updateAvailable) return;
+    setError(null);
+    const exeAsset = updateAvailable.assets?.find((asset: any) => asset.name.endsWith(".exe"));
+    if (!exeAsset) {
+      openRelease();
+      return;
+    }
+
+    setDownloading(true);
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("install_update", { url: exeAsset.browser_download_url });
+    } catch (err) {
+      console.error("Auto update failed:", err);
+      setError("Auto update failed. Opening release page...");
+      setDownloading(false);
+      setTimeout(() => openRelease(), 2000);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -220,6 +255,59 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </span>
                 </div>
               </div>
+
+              {updateAvailable && (
+                <div className="settings-update-banner" style={{
+                  marginTop: "12px",
+                  background: "rgba(16, 185, 129, 0.08)",
+                  border: "1px solid rgba(16, 185, 129, 0.25)",
+                  borderRadius: "8px",
+                  padding: "12px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px"
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", fontWeight: "bold", color: "#10b981" }}>
+                    <span>🚀 New version is available: {updateAvailable.name || updateAvailable.tag_name}</span>
+                  </div>
+                  <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: 0 }}>
+                    {downloading ? "Downloading and preparing to launch setup..." : error ? error : "An update is ready for installation."}
+                  </p>
+                  {!downloading && (
+                    <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+                      <button
+                        onClick={startAutoUpdate}
+                        style={{
+                          background: "#10b981",
+                          border: "none",
+                          color: "#fff",
+                          borderRadius: "4px",
+                          padding: "5px 10px",
+                          fontSize: "11px",
+                          fontWeight: "bold",
+                          cursor: "pointer"
+                        }}
+                      >
+                        Update Now
+                      </button>
+                      <button
+                        onClick={openRelease}
+                        style={{
+                          background: "rgba(255, 255, 255, 0.05)",
+                          border: "1px solid var(--border-color)",
+                          color: "var(--text-muted)",
+                          borderRadius: "4px",
+                          padding: "4px 10px",
+                          fontSize: "11px",
+                          cursor: "pointer"
+                        }}
+                      >
+                        Yenilikleri Gör
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </section>
 
             <div className="settings-divider" />

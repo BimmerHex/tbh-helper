@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SettingsModal } from "./components/SettingsModal";
 import { useSaveData } from "./hooks/useSaveData";
+import { useUpdateChecker } from "./hooks/useUpdateChecker";
 import { GameTooltip, useTooltip } from "./components/GameTooltip";
 import { Header } from "./components/Header";
 import { TabNavigation } from "./components/TabNavigation";
@@ -58,6 +59,7 @@ export default function App() {
 
   const [selectedDetailItem, setSelectedDetailItem] = useState<TbhItem | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { updateAvailable } = useUpdateChecker();
   const {
     activeTab,
     setActiveTab,
@@ -229,7 +231,7 @@ export default function App() {
         onDismiss={dismissNotification}
       />
 
-      <UpdateBanner />
+      <UpdateBanner updateAvailable={updateAvailable} />
 
       <SettingsModal
         isOpen={settingsOpen}
@@ -244,6 +246,7 @@ export default function App() {
         onSetRefreshInterval={setRefreshInterval}
         newItemAlertThreshold={newItemAlertThreshold}
         onSetNewItemAlertThreshold={setNewItemAlertThreshold}
+        updateAvailable={updateAvailable}
       />
     </div>
   );
