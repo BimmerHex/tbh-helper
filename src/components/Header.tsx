@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import "../styles/header.css";
 
 interface HeaderProps {
@@ -20,6 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   onStopPrices,
   onOpenSettings,
 }) => {
+  const { t } = useTranslation();
   return (
     <header className="dashboard-header fade-in">
       <div className="brand-section" style={{ display: "flex", alignItems: "center", gap: "20px" }}>
@@ -99,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
             minWidth: "120px"
           }}>
             <span style={{ fontSize: "9px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>
-              Inventory Value
+              {t("inventoryValue")}
             </span>
             <span style={{ fontSize: "16px", fontWeight: 800, color: "#ff8000", fontFamily: "var(--font-mono, monospace)" }}>
               ${totalStashValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -126,7 +128,7 @@ export const Header: React.FC<HeaderProps> = ({
             alignItems: "center",
             gap: "4px"
           }}>
-            ⚠ Steam Rate Limited (429)
+            {t("steamRateLimited", "⚠ Steam Rate Limited (429)")}
           </span>
         )}
 
@@ -144,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({
               cursor: "pointer"
             }}
           >
-            ⏹ Stop Fetching
+            ⏹ {t("stopFetching")}
           </button>
         ) : (
           <button
@@ -159,7 +161,7 @@ export const Header: React.FC<HeaderProps> = ({
               cursor: "pointer"
             }}
           >
-            Reset &amp; Refresh Prices
+            {t("resetRefreshPrices")}
           </button>
         )}
 
@@ -182,7 +184,7 @@ export const Header: React.FC<HeaderProps> = ({
             transition: "all 0.15s"
           }}
         >
-          ⚙ Settings
+          ⚙ {t("settings")}
         </button>
       </div>
     </header>

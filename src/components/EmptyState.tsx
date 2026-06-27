@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import "../styles/empty-state.css";
 
 interface EmptyStateProps {
@@ -6,25 +7,29 @@ interface EmptyStateProps {
 }
 
 export const LoadingState: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <div className="empty-state">
       <div className="loading-spinner" />
-      <p>Loading application data...</p>
+      <p>{t("loadingSaveData")}</p>
     </div>
   );
 };
 
 export const NoSaveState: React.FC<EmptyStateProps> = ({ onRetry }) => {
+  const { t } = useTranslation();
   return (
     <div className="empty-state">
-      <p style={{ fontSize: "18px", fontWeight: 600 }}>No Save File Data Loaded</p>
-      <p style={{ maxWidth: "500px", fontSize: "14px", lineHeight: "1.6" }}>
-        We could not load or decrypt your Task Bar Hero save file from 
-        <code> %USERPROFILE%\AppData\LocalLow\TesseractStudio\TaskbarHero\SaveFile_Live.es3</code>. 
-        Please make sure the game is running, a character has been created, and that you have at least saved once.
+      <p style={{ fontSize: "18px", fontWeight: 600 }}>{t("noSaveFileDetected")}</p>
+      <p 
+        style={{ maxWidth: "500px", fontSize: "14px", lineHeight: "1.6" }}
+        dangerouslySetInnerHTML={{ __html: t("noSaveFileDesc") }}
+      />
+      <p style={{ maxWidth: "500px", fontSize: "14px", lineHeight: "1.6", marginTop: "10px" }}>
+        {t("noSaveFileWarning")}
       </p>
       <button className="tab-btn" onClick={onRetry} style={{ border: "1px solid var(--border-color)", padding: "8px 16px", borderRadius: "8px", background: "rgba(255,255,255,0.03)", color: "var(--text-main)" }}>
-        Retry Loading Save File
+        {t("retryLoadingSave")}
       </button>
     </div>
   );

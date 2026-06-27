@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { fetchUrlWithRetry } from "../utils";
 import { TbhItem, WishlistItem } from "../types";
@@ -32,6 +33,18 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
   onAddToWishlist,
   onRemoveFromWishlist
 }) => {
+  const { t } = useTranslation();
+
+  const getLocalizedLocation = (loc: string) => {
+    switch (loc.toLowerCase()) {
+      case "stash": return t("heldInStash");
+      case "inventory": return t("heldInInventory");
+      case "market": return t("heldInMarket");
+      case "equipped": return t("equipped");
+      default: return loc;
+    }
+  };
+
   if (!item) return null;
 
   const [loading, setLoading] = useState(true);
@@ -399,34 +412,34 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
           <div className="modal-item-text-info">
             <h2 className="modal-item-title">{item.name}</h2>
             <div className="modal-item-meta">
-              <span className="grade-tag" style={{ color: item.gradeColor }}>{item.grade} Grade</span>
+              <span className="grade-tag" style={{ color: item.gradeColor }}>{t("gradeText", { grade: item.grade })}</span>
               {item.level && <span className="level-tag">LVL {item.level}</span>}
               {item.isChaotic && <span className="chaotic-tag">CHAOTIC</span>}
-              {item.location && <span className="location-tag">Held in {item.location}</span>}
+              {item.location && <span className="location-tag">{getLocalizedLocation(item.location)}</span>}
               <button 
                 onClick={handleOpenInSteamApp}
                 className="steam-link-btn"
-                title="Open this item directly in the Steam Desktop Application"
+                title={t("openSteamAppTitle")}
               >
-                Steam App ↗
+                {t("steamApp")} ↗
               </button>
               <button 
                 onClick={handleOpenInSteamWeb}
                 className="steam-link-btn web"
-                title="Open this item in your default Web Browser"
+                title={t("openSteamWebTitle")}
               >
-                Web Browser ↗
+                {t("webBrowser")} ↗
               </button>
             </div>
           </div>
           <div className="modal-item-pricing-header" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-            <span className="price-label">LAST KNOWN PRICE</span>
+            <span className="price-label">{t("lastKnownPrice")}</span>
             <span className="price-value gold">
-              {item.price !== null ? formatPrice(item.price) : "Price not found"}
+              {item.price !== null ? formatPrice(item.price) : t("priceNotFound")}
             </span>
             {item.updatedAt && (
               <span style={{ fontSize: "10px", color: "var(--text-dark)", marginTop: "2px" }}>
-                Updated: {new Date(item.updatedAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                {t("updated")}: {new Date(item.updatedAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
               </span>
             )}
           </div>
@@ -441,10 +454,10 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
           <div className="modal-chart-container">
             <div className="chart-header-row">
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <h3 className="section-title" style={{ margin: 0 }}>Price History</h3>
+                <h3 className="section-title" style={{ margin: 0 }}>{t("priceHistory")}</h3>
                 {trendPercent !== null && (
                   <span className={`trend-indicator ${trendPercent < 0 ? "below" : "above"}`}>
-                    {trendPercent < 0 ? "▼" : "▲"} {Math.abs(trendPercent).toFixed(1)}% {trendPercent < 0 ? "below" : "above"} avg
+                    {trendPercent < 0 ? "▼" : "▲"} {Math.abs(trendPercent).toFixed(1)}% {trendPercent < 0 ? t("belowAverage") : t("aboveAverage")}
                   </span>
                 )}
               </div>
@@ -454,7 +467,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                   className={`chart-filter-btn ${activeFilter === "all" ? "active" : ""}`}
                   onClick={() => setActiveFilter("all")}
                 >
-                  All
+                  {t("chartAll")}
                 </button>
 
                 <button 
@@ -481,7 +494,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
             {loading ? (
               <div className="modal-inner-loader">
                 <div className="loading-spinner" />
-                <p>Loading historical market prices...</p>
+                <p>{t("loadingHistory")}</p>
               </div>
             ) : error ? (
               <div className="modal-error-box">
@@ -491,12 +504,12 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
             ) : history.length === 0 ? (
               <div className="modal-error-box">
                 <span className="error-icon">ℹ</span>
-                <p>No historical sales records found for this item on the Steam Market.</p>
+                <p>{t("noHistoryFound")}</p>
               </div>
             ) : filteredHistory.length === 0 ? (
               <div className="modal-error-box">
                 <span className="error-icon">ℹ</span>
-                <p>No historical sales records found for this selected period.</p>
+                <p>{t("noPeriodHistoryFound")}</p>
               </div>
             ) : (
               <>
@@ -595,8 +608,8 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                       }}
                     >
                       <div className="tooltip-date">{hoveredPoint.fullDate || hoveredPoint.date}</div>
-                      <div className="tooltip-stat">Price: <span className="val">{formatPrice(hoveredPoint.price)}</span></div>
-                      <div className="tooltip-stat">Volume: <span className="val">{hoveredPoint.volume}</span></div>
+                      <div className="tooltip-stat">{t("price")}: <span className="val">{formatPrice(hoveredPoint.price)}</span></div>
+                      <div className="tooltip-stat">{t("volume")}: <span className="val">{hoveredPoint.volume}</span></div>
                     </div>
                   )}
                 </div>
@@ -604,15 +617,15 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                 {/* Stats Row under chart */}
                 <div className="chart-stats-row">
                   <div className="chart-stat-item">
-                    <span className="chart-stat-label">Low</span>
+                    <span className="chart-stat-label">{t("low")}</span>
                     <span className="chart-stat-val low">{formatPrice(chartStats.low)}</span>
                   </div>
                   <div className="chart-stat-item">
-                    <span className="chart-stat-label">Avg</span>
+                    <span className="chart-stat-label">{t("avg")}</span>
                     <span className="chart-stat-val avg">{formatPrice(chartStats.avg)}</span>
                   </div>
                   <div className="chart-stat-item">
-                    <span className="chart-stat-label">High</span>
+                    <span className="chart-stat-label">{t("highLabel")}</span>
                     <span className="chart-stat-val high">{formatPrice(chartStats.high)}</span>
                   </div>
 
@@ -627,27 +640,30 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
             {/* Wishlist Settings Block */}
             <div className="wishlist-settings-card" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border-color)", padding: "16px", borderRadius: "10px", display: "flex", flexDirection: "column", gap: "10px" }}>
               <h3 className="section-title" style={{ margin: 0, fontSize: "14px", color: "var(--accent-gold)", display: "flex", alignItems: "center", gap: "6px" }}>
-                <span>⭐ Price Alerts & Wishlist</span>
+                <span>⭐ {t("priceAlertsWishlist")}</span>
               </h3>
               
               {isWishlisted && wishlistedItem ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: 0 }}>
-                    Tracking: Alerts when price goes <strong>{wishlistedItem.alertType === "below" ? "below" : "above"} ${wishlistedItem.targetPrice.toFixed(2)}</strong>.
+                    {t("trackingLabel", {
+                      type: wishlistedItem.alertType === "below" ? t("alertBelowShort") : t("alertAboveShort"),
+                      price: wishlistedItem.targetPrice.toFixed(2)
+                    })}
                   </p>
                   <button 
                     onClick={() => onRemoveFromWishlist && onRemoveFromWishlist(item.itemKey)}
                     className="clear-history-btn" 
                     style={{ padding: "6px", width: "100%", justifyContent: "center" }}
                   >
-                    🗑 Stop Tracking
+                    {t("stopTracking")}
                   </button>
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   <div style={{ display: "flex", gap: "8px" }}>
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <span style={{ fontSize: "10px", color: "var(--text-dark)", fontWeight: "bold" }}>TARGET PRICE ($)</span>
+                      <span style={{ fontSize: "10px", color: "var(--text-dark)", fontWeight: "bold" }}>{t("targetPriceLabel")}</span>
                       <input 
                         type="number" 
                         step="0.01" 
@@ -657,14 +673,15 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                       />
                     </div>
                     <div style={{ flex: 1.2, display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <span style={{ fontSize: "10px", color: "var(--text-dark)", fontWeight: "bold" }}>CONDITION</span>
+                      <span style={{ fontSize: "10px", color: "var(--text-dark)", fontWeight: "bold" }}>{t("conditionLabel")}</span>
                       <select 
                         value={alertType} 
                         onChange={(e) => setAlertType(e.target.value as "below" | "above")}
-                        style={{ background: "rgba(0,0,0,0.2)", border: "1px solid var(--border-color)", color: "var(--text-main)", padding: "6px 8px", borderRadius: "6px", fontSize: "12px", width: "100%", cursor: "pointer" }}
+                        className="modal-select"
+                        style={{ width: "100%" }}
                       >
-                        <option value="below">Drops below or equals</option>
-                        <option value="above">Rises above or equals</option>
+                        <option value="below">{t("dropsBelow")}</option>
+                        <option value="above">{t("risesAbove")}</option>
                       </select>
                     </div>
                   </div>
@@ -683,29 +700,29 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                     onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255, 184, 48, 0.2)"}
                     onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255, 184, 48, 0.1)"}
                   >
-                    ⭐ Track Price
+                    ⭐ {t("trackPrice")}
                   </button>
                 </div>
               )}
             </div>
 
             <div>
-              <h3 className="section-title">Cheapest Active Listings</h3>
+              <h3 className="section-title">{t("cheapestActiveListings")}</h3>
             {loading ? (
               <div className="modal-inner-loader">
                 <div className="loading-spinner" />
               </div>
             ) : listings.length === 0 ? (
               <div className="empty-listings-state">
-                <p>No active listings found for sale on Steam.</p>
+                <p>{t("noListingsFound")}</p>
               </div>
             ) : (
               <div className="listings-table-wrapper">
                 <table className="listings-table">
                   <thead>
                     <tr>
-                      <th>Price</th>
-                      <th style={{ textAlign: "right" }}>Quantity</th>
+                      <th>{t("price")}</th>
+                      <th style={{ textAlign: "right" }}>{t("quantity")}</th>
                     </tr>
                   </thead>
                   <tbody>

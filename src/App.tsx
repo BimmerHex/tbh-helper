@@ -108,6 +108,8 @@ export default function App() {
     sendTelegramMessage,
     closeToTray,
     setCloseToTray,
+    language,
+    setLanguage,
   } = useSaveData();
 
   const {
@@ -227,13 +229,15 @@ export default function App() {
         activeTab={activeTab}
       />
 
-      <ItemDetailModal
-        item={selectedDetailItem}
-        onClose={() => setSelectedDetailItem(null)}
-        wishlist={wishlist}
-        onAddToWishlist={addToWishlist}
-        onRemoveFromWishlist={removeFromWishlist}
-      />
+      {selectedDetailItem && (
+        <ItemDetailModal
+          item={selectedDetailItem}
+          onClose={() => setSelectedDetailItem(null)}
+          wishlist={wishlist}
+          onAddToWishlist={addToWishlist}
+          onRemoveFromWishlist={removeFromWishlist}
+        />
+      )}
 
       <NotificationStack
         notifications={inAppNotifications}
@@ -265,6 +269,8 @@ export default function App() {
         onSendTelegramTest={sendTelegramMessage}
         closeToTray={closeToTray}
         onSetCloseToTray={setCloseToTray}
+        language={language}
+        onSetLanguage={setLanguage}
       />
     </div>
   );

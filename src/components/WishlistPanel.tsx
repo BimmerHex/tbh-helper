@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { WishlistItem, TbhItem } from "../types";
 import "../styles/wishlist.css";
 
@@ -15,6 +16,7 @@ export const WishlistPanel: React.FC<WishlistPanelProps> = ({
   onRemove,
   onClickItem,
 }) => {
+  const { t } = useTranslation();
   const handleCardClick = (item: WishlistItem) => {
     const priceData = prices[item.marketHashName];
     const currentPrice = priceData ? priceData.price : null;
@@ -44,10 +46,8 @@ export const WishlistPanel: React.FC<WishlistPanelProps> = ({
     return (
       <div className="wishlist-empty-state">
         <span className="wishlist-empty-icon">⭐</span>
-        <h3>Your Wishlist is Empty</h3>
-        <p>
-          You are not tracking any items yet. Open any item detail from Stash or Market tabs, and use the <strong>Price Alerts & Wishlist</strong> card to track prices.
-        </p>
+        <h3>{t("wishlistEmpty")}</h3>
+        <p dangerouslySetInnerHTML={{ __html: t("wishlistEmptyDesc") }} />
       </div>
     );
   }
@@ -89,7 +89,7 @@ export const WishlistPanel: React.FC<WishlistPanelProps> = ({
                 </div>
                 <button 
                   className="wishlist-delete-btn"
-                  title="Remove from Wishlist"
+                  title={t("removeFromWishlist")}
                   onClick={(e) => {
                     e.stopPropagation();
                     onRemove(item.itemKey);
@@ -101,13 +101,13 @@ export const WishlistPanel: React.FC<WishlistPanelProps> = ({
 
               <div className="wishlist-card-body">
                 <div className="wishlist-stat-row">
-                  <span className="lbl">Target Alert:</span>
+                  <span className="lbl">{t("targetAlert")}:</span>
                   <span className="val alert-target-val">
                     {item.alertType === "below" ? "≤" : "≥"} ${item.targetPrice.toFixed(2)}
                   </span>
                 </div>
                 <div className="wishlist-stat-row">
-                  <span className="lbl">Current Price:</span>
+                  <span className="lbl">{t("currentPrice")}:</span>
                   <span className={`val current-price-val ${alertTriggered ? "glow-green" : ""}`}>
                     {currentPrice !== null ? `$${currentPrice.toFixed(2)}` : "—"}
                   </span>
@@ -116,7 +116,7 @@ export const WishlistPanel: React.FC<WishlistPanelProps> = ({
 
               {alertTriggered && (
                 <div className="wishlist-card-status">
-                  🚨 Target Reached!
+                  🚨 {t("targetReached")}
                 </div>
               )}
             </div>

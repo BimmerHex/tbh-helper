@@ -5,10 +5,52 @@ import { isPermissionGranted, requestPermission, sendNotification } from "@tauri
 import { TbhItem, ParsedSave, MarketItem, AnalyticsData, TabType, SortType, PortfolioPoint, WishlistItem, InAppNotification } from "../types";
 import { GRADE_MAP, GRADE_COLORS, HERO_CLASS_NAMES, GRADE_RANK } from "../constants";
 import { PriceManager } from "../services/price/PriceManager";
+import i18n from "../i18n";
+
+function translateStatusMessage(msg: string, lang: "en" | "tr"): string {
+  if (lang === "en") return msg;
+  if (msg.startsWith("Updating prices (Page")) {
+    const parts = msg.replace("Updating prices (Page ", "").replace(")...", "").split("/");
+    if (parts.length === 2) {
+      return `Fiyatlar güncelleniyor (Sayfa ${parts[0]}/${parts[1]})...`;
+    }
+    return "Fiyatlar güncelleniyor...";
+  }
+  if (msg.startsWith("Loaded custom save file: ")) {
+    const path = msg.replace("Loaded custom save file: ", "");
+    return `Özel kayıt dosyası yüklendi: ${path}`;
+  }
+  switch (msg) {
+    case "Initializing...": return "Başlatılıyor...";
+    case "Waiting for Steam login...": return "Steam girişi bekleniyor...";
+    case "Successfully connected to Steam! Press 'Refresh Prices' to fetch market data.":
+      return "Steam'e başarıyla bağlanıldı! Market fiyatlarını çekmek için 'Fiyatları Yenile'ye basın.";
+    case "Steam login window closed.": return "Steam giriş penceresi kapatıldı.";
+    case "Failed to launch Steam login window.": return "Steam giriş penceresi açılamadı.";
+    case "Disconnected from Steam.": return "Steam bağlantısı kesildi.";
+    case "Failed to disconnect from Steam.": return "Steam bağlantısı kesilemedi.";
+    case "Price fetching stopped by user.": return "Fiyat çekme işlemi kullanıcı tarafından durduruldu.";
+    case "Updating Steam Market prices in background...": return "Steam Pazarı fiyatları arka planda güncelleniyor...";
+    case "Market prices updated successfully from Steam.": return "Market fiyatları Steam'den başarıyla güncellendi.";
+    case "Failed to fetch Steam Market prices.": return "Steam Pazarı fiyatları çekilemedi.";
+    case "Save file updated in real-time.": return "Kayıt dosyası gerçek zamanlı olarak güncellendi.";
+    case "Real-time save parsing error.": return "Gerçek zamanlı kayıt dosyası ayrıştırma hatası.";
+    case "Decrypting SaveFile_Live.es3...": return "SaveFile_Live.es3 şifresi çözülüyor...";
+    case "Save file loaded successfully.": return "Kayıt dosyası başarıyla yüklendi.";
+    case "Save file not loaded. Make sure the game is running or you have created a character.":
+      return "Kayıt dosyası yüklenemedi. Oyunun açık olduğundan veya karakter oluşturduğunuzdan emin olun.";
+    case "Opening file dialog...": return "Dosya seçici açılıyor...";
+    case "Save file selection cancelled.": return "Kayıt dosyası seçimi iptal edildi.";
+    default: return msg;
+  }
+}
 
 // @ts-ignore
 import tbhDataRaw from "../tbh_data.json";
+// @ts-ignore
+import tbhDataTrRaw from "../tbh_data_tr.json";
 const tbhData: any = tbhDataRaw;
+const tbhDataTr: any = tbhDataTrRaw;
 
 export function useSaveData() {
   const [saveData, setSaveData] = useState<any>(null);
@@ -99,6 +141,26 @@ export function useSaveData() {
     try { localStorage.setItem("tbh_close_to_tray", String(val)); } catch {}
   };
 
+  const [language, setLanguageState] = useState<"en" | "tr">(() => {
+    try {
+      const saved = localStorage.getItem("tbh_language");
+      return (saved === "tr" || saved === "en") ? saved : "en";
+    } catch { return "en"; }
+  });
+
+  const setLanguage = (lang: "en" | "tr") => {
+    setLanguageState(lang);
+    try {
+      localStorage.setItem("tbh_language", lang);
+      i18n.changeLanguage(lang);
+    } catch {}
+  };
+
+  // Sync language to i18n on mount
+  useEffect(() => {
+    i18n.changeLanguage(language);
+  }, []);
+
   const sendTelegramMessage = async (message: string) => {
     if (!telegramBotToken || !telegramChatId) return;
     try {
@@ -169,7 +231,8 @@ export function useSaveData() {
             const lookupKey = itemKey.endsWith("900") ? itemKey.slice(0, -3) : itemKey;
             
             const props = tbhData.properties[lookupKey] || {};
-            const name = tbhData.names[lookupKey] || `Item #${lookupKey}`;
+            const englishName = tbhData.names[lookupKey] || `Item #${lookupKey}`;
+            const name = language === "tr" ? (tbhDataTr.names[lookupKey] || englishName) : englishName;
             const gradeCode = props.g || "COM";
             const grade = GRADE_MAP[gradeCode] || "Common";
             const level = props.l || null;
@@ -178,9 +241,9 @@ export function useSaveData() {
             const iconUrl = tbhData.icons[props.s] || null;
             const quantity = raw.Quantity ?? raw.Count ?? raw.Amount ?? details.Quantity ?? details.Count ?? details.Amount ?? 1;
             
-            let marketHashName = name;
+            let marketHashName = englishName;
             if (!isMaterial) {
-              marketHashName = name.includes(`(${grade})`) ? `${name} A` : `${name} (${grade}) A`;
+              marketHashName = englishName.includes(`(${grade})`) ? `${englishName} A` : `${englishName} (${grade}) A`;
             }
             
             const priceData = prices[marketHashName];
@@ -270,7 +333,8 @@ export function useSaveData() {
               const lookupKey = itemKey.endsWith("900") ? itemKey.slice(0, -3) : itemKey;
               
               const props = tbhData.properties[lookupKey] || {};
-              const name = tbhData.names[lookupKey] || `Item #${lookupKey}`;
+              const englishName = tbhData.names[lookupKey] || `Item #${lookupKey}`;
+              const name = language === "tr" ? (tbhDataTr.names[lookupKey] || englishName) : englishName;
               const gradeCode = props.g || "COM";
               const grade = GRADE_MAP[gradeCode] || "Common";
               const level = props.l || null;
@@ -279,9 +343,9 @@ export function useSaveData() {
               const iconUrl = tbhData.icons[props.s] || null;
               const quantity = details.Quantity ?? details.Count ?? details.Amount ?? 1;
               
-              let marketHashName = name;
+              let marketHashName = englishName;
               if (!isMaterial) {
-                marketHashName = name.includes(`(${grade})`) ? `${name} A` : `${name} (${grade}) A`;
+                marketHashName = englishName.includes(`(${grade})`) ? `${englishName} A` : `${englishName} (${grade}) A`;
               }
               
               const priceData = prices[marketHashName];
@@ -374,7 +438,7 @@ export function useSaveData() {
       return null;
     }
 
-  }, [saveData, prices]);
+  }, [saveData, prices, language]);
 
   const [wishlist, setWishlist] = useState<WishlistItem[]>(() => {
     try {
@@ -470,12 +534,17 @@ export function useSaveData() {
       }
 
       if (shouldAlert && item.lastNotifiedPrice !== currentPrice) {
+        const englishName = tbhData.names[item.itemKey] || item.name;
+        const currentName = language === "tr" ? (tbhDataTr.names[item.itemKey] || englishName) : englishName;
+
         // 1. Native Windows toast notification via Tauri Plugin
         isPermissionGranted().then((granted) => {
           if (granted) {
             sendNotification({
-              title: `TBH Price Alert: ${item.name}`,
-              body: `${item.name} is now $${currentPrice.toFixed(2)} (${item.alertType === "below" ? "below" : "above"} $${item.targetPrice.toFixed(2)})!`
+              title: language === "tr" ? `TBH Fiyat Uyarısı: ${currentName}` : `TBH Price Alert: ${currentName}`,
+              body: language === "tr"
+                ? `${currentName} şu anda $${currentPrice.toFixed(2)} (hedef fiyatın ${item.alertType === "below" ? "altında" : "üstünde"} $${item.targetPrice.toFixed(2)})!`
+                : `${currentName} is now $${currentPrice.toFixed(2)} (${item.alertType === "below" ? "below" : "above"} $${item.targetPrice.toFixed(2)})!`
             });
           }
         }).catch((err) => {
@@ -488,8 +557,10 @@ export function useSaveData() {
           ...prev,
           {
             id: notifId,
-            title: `⭐ Price Alert: ${item.name}`,
-            message: `Target price reached! The item is currently listed at $${currentPrice.toFixed(2)} (${item.alertType === "below" ? "drops below" : "rises above"} $${item.targetPrice.toFixed(2)}).`,
+            title: language === "tr" ? `⭐ Fiyat Uyarısı: ${currentName}` : `⭐ Price Alert: ${currentName}`,
+            message: language === "tr"
+              ? `Hedef fiyata ulaşıldı! Öğe şu anda $${currentPrice.toFixed(2)} fiyatından listeleniyor (${item.alertType === "below" ? "hedef fiyatın altında" : "hedef fiyatın üstünde"} $${item.targetPrice.toFixed(2)}).`
+              : `Target price reached! The item is currently listed at $${currentPrice.toFixed(2)} (${item.alertType === "below" ? "drops below" : "rises above"} $${item.targetPrice.toFixed(2)}).`,
             timestamp: Date.now()
           }
         ]);
@@ -497,7 +568,9 @@ export function useSaveData() {
         // 3. Telegram notification
         if (telegramEnabled) {
           sendTelegramMessage(
-            `🔔 <b>TBH Price Alert</b>\n\n<b>${item.name}</b> is now <b>$${currentPrice.toFixed(2)}</b> (alert set for ${item.alertType === "below" ? "≤" : "≥"} $${item.targetPrice.toFixed(2)})!`
+            language === "tr"
+              ? `🔔 <b>TBH Fiyat Uyarısı</b>\n\n<b>${currentName}</b> şu anda <b>$${currentPrice.toFixed(2)}</b> (uyarı ayarı: ${item.alertType === "below" ? "≤" : "≥"} $${item.targetPrice.toFixed(2)})!`
+              : `🔔 <b>TBH Price Alert</b>\n\n<b>${item.name}</b> is now <b>$${currentPrice.toFixed(2)}</b> (alert set for ${item.alertType === "below" ? "≤" : "≥"} $${item.targetPrice.toFixed(2)})!`
           );
         }
 
@@ -569,12 +642,17 @@ export function useSaveData() {
           const individualPrice = item.price;
 
           if (individualPrice !== null && individualPrice >= newItemAlertThreshold) {
+            const englishName = tbhData.names[item.lookupKey] || item.name;
+            const currentName = language === "tr" ? (tbhDataTr.names[item.lookupKey] || englishName) : englishName;
+
             // Trigger native OS notification
             isPermissionGranted().then((granted) => {
               if (granted) {
                 sendNotification({
-                  title: `⭐ High-Value Item Added!`,
-                  body: `${addedQty}x ${item.name} (${item.grade}) worth $${individualPrice.toFixed(2)} each has been added!`
+                  title: language === "tr" ? `⭐ Değerli Öğe Eklendi!` : `⭐ High-Value Item Added!`,
+                  body: language === "tr"
+                    ? `${addedQty}x ${currentName} (${item.grade}) tanesi $${individualPrice.toFixed(2)} değerinde olan öğe eklendi!`
+                    : `${addedQty}x ${item.name} (${item.grade}) worth $${individualPrice.toFixed(2)} each has been added!`
                 });
               }
             }).catch((err) => {
@@ -587,8 +665,10 @@ export function useSaveData() {
               ...prev,
               {
                 id: notifId,
-                title: `⭐ High-Value Item Added!`,
-                message: `${addedQty}x ${item.name} (${item.grade}) worth $${individualPrice.toFixed(2)} each has been added to your inventory/stash.`,
+                title: language === "tr" ? `⭐ Değerli Öğe Eklendi!` : `⭐ High-Value Item Added!`,
+                message: language === "tr"
+                  ? `${addedQty}x ${currentName} (${item.grade}) tanesi $${individualPrice.toFixed(2)} değerinde olan öğe envanterinize/zulanıza eklendi.`
+                  : `${addedQty}x ${item.name} (${item.grade}) worth $${individualPrice.toFixed(2)} each has been added to your inventory/stash.`,
                 timestamp: Date.now()
               }
             ]);
@@ -596,7 +676,9 @@ export function useSaveData() {
             // 3. Telegram notification
             if (telegramEnabled) {
               sendTelegramMessage(
-                `⭐ <b>High-Value Item Added!</b>\n\n<b>${addedQty}x ${item.name}</b> (${item.grade}) worth <b>$${individualPrice.toFixed(2)}</b> each has been added to your inventory/stash.`
+                language === "tr"
+                  ? `⭐ <b>Değerli Öğe Eklendi!</b>\n\n<b>${addedQty}x ${currentName}</b> (${item.grade}) tanesi <b>$${individualPrice.toFixed(2)}</b> değerinde olan öğe envanterinize/zulanıza eklendi.`
+                  : `⭐ <b>High-Value Item Added!</b>\n\n<b>${addedQty}x ${item.name}</b> (${item.grade}) worth <b>$${individualPrice.toFixed(2)}</b> each has been added to your inventory/stash.`
               );
             }
           }
@@ -1000,7 +1082,6 @@ export function useSaveData() {
     const list: MarketItem[] = [];
     const seen = new Set<string>();
     
-    const names = tbhData.names;
     const properties = tbhData.properties;
     
     for (const key in properties) {
@@ -1010,10 +1091,12 @@ export function useSaveData() {
       const gradeCode = prop.g || "COM";
       const grade = GRADE_MAP[gradeCode] || "Common";
       
-      const name = names[key] || "Unknown";
-      let marketHashName = name;
+      const englishName = tbhData.names[key] || "Unknown";
+      const name = language === "tr" ? (tbhDataTr.names[key] || englishName) : englishName;
+      
+      let marketHashName = englishName;
       if (!isMaterial) {
-        marketHashName = name.includes(`(${grade})`) ? `${name} A` : `${name} (${grade}) A`;
+        marketHashName = englishName.includes(`(${grade})`) ? `${englishName} A` : `${englishName} (${grade}) A`;
       }
       
       if (seen.has(marketHashName)) {
@@ -1074,7 +1157,7 @@ export function useSaveData() {
     });
     
     return filtered;
-  }, [prices, searchQuery, gradeFilter, sortBy, hideNoPriceItems]);
+  }, [prices, searchQuery, gradeFilter, sortBy, hideNoPriceItems, language]);
 
   // Analytics Computations
   const analyticsData = useMemo<AnalyticsData | null>(() => {
@@ -1132,6 +1215,17 @@ export function useSaveData() {
     };
   }, [parsedSave]);
 
+  const localizedWishlist = useMemo<WishlistItem[]>(() => {
+    return wishlist.map(item => {
+      const englishName = tbhData.names[item.itemKey] || item.name;
+      const name = language === "tr" ? (tbhDataTr.names[item.itemKey] || englishName) : englishName;
+      return {
+        ...item,
+        name
+      };
+    });
+  }, [wishlist, language]);
+
   return {
     // State
     activeTab,
@@ -1144,7 +1238,7 @@ export function useSaveData() {
     setSortBy,
     hideNoPriceItems,
     setHideNoPriceItems,
-    statusMessage,
+    statusMessage: translateStatusMessage(statusMessage, language),
     isLive,
     loading,
     loadingPrices,
@@ -1155,6 +1249,7 @@ export function useSaveData() {
     telegramBotToken,
     telegramChatId,
     closeToTray,
+    language,
     
     // Data
     parsedSave,
@@ -1162,7 +1257,7 @@ export function useSaveData() {
     marketExplorerItems,
     analyticsData,
     portfolioHistory,
-    wishlist,
+    wishlist: localizedWishlist,
     inAppNotifications,
     prices,
     
@@ -1185,5 +1280,6 @@ export function useSaveData() {
     setTelegramChatId,
     sendTelegramMessage,
     setCloseToTray,
+    setLanguage,
   };
 }

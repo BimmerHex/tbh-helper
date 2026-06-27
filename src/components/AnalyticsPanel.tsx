@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { AnalyticsData, ParsedSave, PortfolioPoint } from "../types";
 import { GRADE_COLORS } from "../constants";
 import "../styles/analytics.css";
@@ -16,6 +17,7 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
   portfolioHistory = [],
   onClearPortfolio
 }) => {
+  const { t } = useTranslation();
   const [hoveredPoint, setHoveredPoint] = useState<PortfolioPoint | null>(null);
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
   const chartRef = useRef<SVGSVGElement>(null);
@@ -121,7 +123,7 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
   };
 
   const handleClearHistory = () => {
-    if (window.confirm("Are you sure you want to clear your Stash Value History? This action cannot be undone.")) {
+    if (window.confirm(t("clearHistoryConfirm"))) {
       onClearPortfolio && onClearPortfolio();
     }
   };
@@ -131,10 +133,10 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
       {/* Portfolio History Panel */}
       <div className="chart-panel portfolio-history-panel">
         <div className="chart-header-row">
-          <h3 className="chart-title" style={{ border: 0, padding: 0, margin: 0 }}>Stash Value History</h3>
+          <h3 className="chart-title" style={{ border: 0, padding: 0, margin: 0 }}>{t("stashValueHistory")}</h3>
           {history.length >= 1 && (
-            <button onClick={handleClearHistory} className="clear-history-btn" title="Reset all recorded stash values">
-              🗑 Clear History
+            <button onClick={handleClearHistory} className="clear-history-btn" title={t("clearHistory")}>
+              🗑 {t("clearHistory")}
             </button>
           )}
         </div>
@@ -142,9 +144,9 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
         {history.length === 0 ? (
           <div className="portfolio-onboarding-box">
             <span className="portfolio-onboarding-icon">📈</span>
-            <h4 className="portfolio-onboarding-title">Portfolio Tracking Active!</h4>
+            <h4 className="portfolio-onboarding-title">{t("portfolioActive")}</h4>
             <p className="portfolio-onboarding-desc">
-              Your Stash value history chart will start drawing once you load save files. We save one snapshot per day to track your progress over time.
+              {t("portfolioActiveDesc")}
             </p>
           </div>
         ) : (
@@ -254,13 +256,13 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
                 }}
               >
                 <div className="tooltip-date">{hoveredPoint.date}</div>
-                <div className="tooltip-stat">Stash: <span className="val">${hoveredPoint.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                <div className="tooltip-stat">{t("stash")}: <span className="val">${hoveredPoint.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
               </div>
             )}
 
             {history.length === 1 && (
               <p style={{ fontSize: "11px", color: "var(--text-muted)", textAlign: "center", marginTop: "8px", fontStyle: "italic" }}>
-                Trend line will start drawing once you load save files on different days.
+                {t("trendLineHint")}
               </p>
             )}
           </div>
@@ -270,7 +272,7 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
       <div className="charts-row">
         {/* Rarity Breakdown */}
         <div className="chart-panel">
-          <h3 className="chart-title">Rarity Distribution</h3>
+          <h3 className="chart-title">{t("rarityDistribution")}</h3>
           <div className="rarity-bar-container">
             {Object.entries(analyticsData.rarityDistribution)
               .filter(([_, data]) => data.count > 0)
@@ -297,7 +299,7 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
 
         {/* Top Holdings */}
         <div className="chart-panel">
-          <h3 className="chart-title">Top 5 Most Valuable Holdings</h3>
+          <h3 className="chart-title">{t("topHoldings")}</h3>
           <div className="leaderboard-list">
             {analyticsData.topHoldings.map((item, index) => (
               <div key={index} className="leaderboard-row" style={{ borderLeft: `4px solid ${item.gradeColor}` }}>
@@ -312,7 +314,7 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
                   <div style={{ minWidth: 0 }}>
                     <div className="item-name" style={{ fontSize: "14px" }} title={item.name}>{item.name}</div>
                     <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-                      Qty: {item.quantity} · {item.grade}
+                      {t("qtyLabel")}: {item.quantity} · {item.grade}
                     </div>
                   </div>
                 </div>
@@ -321,13 +323,13 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
                     ${item.totalValue ? item.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—"}
                   </div>
                   <div style={{ fontSize: "10px", color: "var(--text-dark)" }}>
-                    ${item.price ? item.price.toFixed(2) : "0"} each
+                    ${item.price ? item.price.toFixed(2) : "0"} {t("each")}
                   </div>
                 </div>
               </div>
             ))}
             {analyticsData.topHoldings.length === 0 && (
-              <p style={{ color: "var(--text-muted)", fontSize: "14px" }}>No valuable holdings found.</p>
+              <p style={{ color: "var(--text-muted)", fontSize: "14px" }}>{t("noValuableHoldings")}</p>
             )}
           </div>
         </div>

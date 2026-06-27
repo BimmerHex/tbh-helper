@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { TabType, SortType } from "../types";
 import { GRADE_MAP } from "../constants";
 import "../styles/tabs.css";
@@ -28,29 +29,30 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
   hideNoPriceItems,
   setHideNoPriceItems,
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="controls-row fade-in">
       <div className="tabs-list">
         <button className={`tab-btn ${activeTab === "all" ? "active" : ""}`} onClick={() => setActiveTab("all")}>
-          All Items
+          {t("all")}
         </button>
         <button className={`tab-btn ${activeTab === "stash" ? "active" : ""}`} onClick={() => setActiveTab("stash")}>
-          Stash
+          {t("stash")}
         </button>
         <button className={`tab-btn ${activeTab === "inventory" ? "active" : ""}`} onClick={() => setActiveTab("inventory")}>
-          Inventory
+          {t("inventory")}
         </button>
         <button className={`tab-btn ${activeTab === "equipped" ? "active" : ""}`} onClick={() => setActiveTab("equipped")}>
-          Equipped
+          {t("equippedTab")}
         </button>
         <button className={`tab-btn ${activeTab === "market" ? "active" : ""}`} onClick={() => setActiveTab("market")}>
-          Market Prices
+          {t("marketPrices")}
         </button>
         <button className={`tab-btn ${activeTab === "analytics" ? "active" : ""}`} onClick={() => setActiveTab("analytics")}>
-          Analytics
+          {t("analytics")}
         </button>
         <button className={`tab-btn ${activeTab === "wishlist" ? "active" : ""}`} onClick={() => setActiveTab("wishlist")}>
-          Wishlist ⭐
+          {t("wishlist")}
         </button>
       </div>
 
@@ -58,7 +60,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
         <div className="filters-list">
           <input 
             type="text" 
-            placeholder="Search item name..." 
+            placeholder={t("searchPlaceholder")} 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
@@ -68,7 +70,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
             onChange={(e) => setGradeFilter(e.target.value)}
             className="select-input"
           >
-            <option value="all">All Rarities</option>
+            <option value="all">{t("allRarities")}</option>
             {Object.values(GRADE_MAP).map((grade) => (
               <option key={grade} value={grade}>{grade}</option>
             ))}
@@ -78,16 +80,16 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
             onChange={(e) => setSortBy(e.target.value as SortType)}
             className="select-input"
           >
-            <option value="value">Sort by Unit Price</option>
-            <option value="name">Sort by Name</option>
-            <option value="grade">Sort by Rarity</option>
+            <option value="value">{t("sortByUnitPrice")}</option>
+            <option value="name">{t("sortByName")}</option>
+            <option value="grade">{t("sortByRarity")}</option>
           </select>
 
           {activeTab === "market" && (
             <button
               className={`tab-btn ${hideNoPriceItems ? "active" : ""}`}
               onClick={() => setHideNoPriceItems(!hideNoPriceItems)}
-              title="Toggle visibility of items without a price"
+              title={t("toggleNoPriceTitle")}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -107,7 +109,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                 whiteSpace: "nowrap",
               }}
             >
-              {hideNoPriceItems ? "👁 Show All" : "🚫 Hide No-Price"}
+              {hideNoPriceItems ? `👁 ${t("showAll")}` : `🚫 ${t("hideNoPrice")}`}
             </button>
           )}
         </div>

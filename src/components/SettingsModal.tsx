@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import "../styles/settings-modal.css";
 
 interface SettingsModalProps {
@@ -24,6 +25,8 @@ interface SettingsModalProps {
   onSendTelegramTest: (msg: string) => Promise<void>;
   closeToTray: boolean;
   onSetCloseToTray: (val: boolean) => void;
+  language: "en" | "tr";
+  onSetLanguage: (lang: "en" | "tr") => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -49,7 +52,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onSendTelegramTest,
   closeToTray,
   onSetCloseToTray,
+  language,
+  onSetLanguage,
 }) => {
+  const { t } = useTranslation();
   const [appVersion, setAppVersion] = useState<string>("...");
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,9 +109,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="settings-header">
           <div className="settings-title-row">
             <span className="settings-icon">&#9881;</span>
-            <h2 className="settings-title">Settings</h2>
+            <h2 className="settings-title">{t("settingsTitle")}</h2>
           </div>
-          <button className="settings-close-btn" onClick={onClose} aria-label="Close settings">&#10005;</button>
+          <button className="settings-close-btn" onClick={onClose} aria-label={t("closeSettings")}>&#10005;</button>
         </div>
 
         {/* 2-column body */}
@@ -116,33 +122,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* Steam Market */}
             <section className="settings-section">
-              <h3 className="settings-section-title">Steam Market</h3>
-              <p className="settings-section-desc">
-                Without a Steam login, the <strong style={{ color: "var(--text-main)" }}>Steam Community Market</strong> blocks
-                price requests after a short while &mdash; returning a <strong style={{ color: "#f59e0b" }}>429 Too Many Requests</strong> error.
-                Logging in significantly raises this limit, allowing all prices to be fetched reliably.
-                Your account is only used to make market requests; no personal data is stored or shared.
-              </p>
+              <h3 className="settings-section-title">{t("steamMarketTitle")}</h3>
+              <p className="settings-section-desc" dangerouslySetInnerHTML={{ __html: t("steamMarketDesc") }} />
               <div className="settings-row">
                 <div className="settings-row-label">
-                  <span className="settings-row-name">Connection Status</span>
+                  <span className="settings-row-name">{t("connectionStatus")}</span>
                   <span className={`settings-badge ${steamLoggedIn ? "badge-success" : "badge-error"}`}>
                     <span className="badge-dot" />
-                    {steamLoggedIn ? "STEAM CONNECTED" : "STEAM DISCONNECTED"}
+                    {steamLoggedIn ? t("steamConnected") : t("steamDisconnected")}
                   </span>
                 </div>
                 <div className="settings-row-actions">
                   {steamLoggedIn ? (
                     <button className="settings-btn btn-danger" onClick={() => { onDisconnectSteam?.(); onClose(); }}>
-                      Disconnect Steam
+                      {t("disconnectSteam")}
                     </button>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
                       <button className="settings-btn btn-primary" onClick={() => { onConnectSteam?.(); onClose(); }}>
-                        &#128268; Connect Steam
+                        &#128268; {t("connectSteam")}
                       </button>
                       <span className="settings-connect-warning">
-                        &#9888; A login window will open &mdash; do not close this app until login is complete.
+                        &#9888; {t("connectSteamWarning")}
                       </span>
                     </div>
                   )}
@@ -154,14 +155,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* Auto Price Refresh */}
             <section className="settings-section">
-              <h3 className="settings-section-title">Auto Price Refresh</h3>
+              <h3 className="settings-section-title">{t("autoPriceRefreshTitle")}</h3>
               <p className="settings-section-desc">
-                Prices are automatically refreshed in the background at the selected interval.
+                {t("autoPriceRefreshDesc")}
               </p>
               <div className="settings-row">
                 <div className="settings-row-label">
-                  <span className="settings-row-name">Refresh Interval</span>
-                  <span className="settings-row-hint">Minimum 10 minutes</span>
+                  <span className="settings-row-name">{t("refreshInterval")}</span>
+                  <span className="settings-row-hint">{t("min10Minutes")}</span>
                 </div>
                 <div className="settings-row-actions">
                   <select
@@ -169,11 +170,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     value={refreshInterval}
                     onChange={(e) => onSetRefreshInterval(Number(e.target.value))}
                   >
-                    <option value={10}>Every 10 minutes</option>
-                    <option value={15}>Every 15 minutes</option>
-                    <option value={30}>Every 30 minutes</option>
-                    <option value={60}>Every 1 hour</option>
-                    <option value={120}>Every 2 hours</option>
+                    <option value={10}>{t("every10Min")}</option>
+                    <option value={15}>{t("every15Min")}</option>
+                    <option value={30}>{t("every30Min")}</option>
+                    <option value={60}>{t("every1Hour")}</option>
+                    <option value={120}>{t("every2Hours")}</option>
                   </select>
                 </div>
               </div>
@@ -183,14 +184,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* High-Value Item Alerts */}
             <section className="settings-section">
-              <h3 className="settings-section-title">High-Value Item Alerts</h3>
+              <h3 className="settings-section-title">{t("highValueAlertsTitle")}</h3>
               <p className="settings-section-desc">
-                Get notified when you obtain a new item whose market value is above the set threshold. Set to 0 to disable.
+                {t("highValueAlertsDesc")}
               </p>
               <div className="settings-row">
                 <div className="settings-row-label">
-                  <span className="settings-row-name">Min Price Threshold ($)</span>
-                  <span className="settings-row-hint">Alert on new items worth at least this much</span>
+                  <span className="settings-row-name">{t("minPriceThreshold")}</span>
+                  <span className="settings-row-hint">{t("minPriceThresholdHint")}</span>
                 </div>
                 <div className="settings-row-actions">
                   <input
@@ -220,16 +221,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* Telegram Notifications */}
             <section className="settings-section">
               <h3 className="settings-section-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span>📬 Telegram Notifications</span>
+                <span>📬 {t("telegramAlertsTitle")}</span>
               </h3>
               <p className="settings-section-desc">
-                Receive instant price alerts and new high-value item notifications directly on your mobile Telegram app (100% free!).
+                {t("telegramAlertsDesc")}
               </p>
               
               <div className="settings-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div className="settings-row-label">
-                  <span className="settings-row-name">Enable Telegram Alerts</span>
-                  <span className="settings-row-hint">Forward alerts to your Telegram bot</span>
+                  <span className="settings-row-name">{t("enableTelegramAlerts")}</span>
+                  <span className="settings-row-hint">{t("forwardAlertsHint")}</span>
                 </div>
                 <div className="settings-row-actions">
                   <input 
@@ -244,7 +245,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {telegramEnabled && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "12px", background: "rgba(0,0,0,0.15)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                    <span style={{ fontSize: "10px", color: "var(--text-dark)", fontWeight: "bold" }}>BOT TOKEN</span>
+                    <span style={{ fontSize: "10px", color: "var(--text-dark)", fontWeight: "bold" }}>{t("botToken")}</span>
                     <input 
                       type="text" 
                       placeholder="e.g. 123456789:ABCdef..." 
@@ -254,7 +255,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     />
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                    <span style={{ fontSize: "10px", color: "var(--text-dark)", fontWeight: "bold" }}>CHAT ID</span>
+                    <span style={{ fontSize: "10px", color: "var(--text-dark)", fontWeight: "bold" }}>{t("chatId")}</span>
                     <input 
                       type="text" 
                       placeholder="e.g. 987654321" 
@@ -279,11 +280,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       marginTop: "4px" 
                     }}
                   >
-                    Test Connection
+                    {t("testConnection")}
                   </button>
-                  <span style={{ fontSize: "9px", color: "var(--text-dark)", lineHeight: "1.3" }}>
-                    ℹ️ <strong>Setup:</strong> 1. Message <code>@BotFather</code> on Telegram, send <code>/newbot</code> to get a Bot Token. 2. Message <code>@GetIDBot</code> to get your Chat ID. 3. Search for your bot and click <strong>Start</strong>, then click Test Connection above.
-                  </span>
+                  <span style={{ fontSize: "9px", color: "var(--text-dark)", lineHeight: "1.3" }} dangerouslySetInnerHTML={{ __html: t("telegramSetupHint") }} />
                 </div>
               )}
             </section>
@@ -295,33 +294,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* Save File */}
             <section className="settings-section">
-              <h3 className="settings-section-title">Save File</h3>
+              <h3 className="settings-section-title">{t("saveFileTitle")}</h3>
               <p className="settings-section-desc">
-                Real-time sync watches your game&apos;s save file automatically. You can also
-                select a custom save file or manually reload.
+                {t("saveFileDesc")}
               </p>
               <div className="settings-row">
                 <div className="settings-row-label">
-                  <span className="settings-row-name">Real-Time Sync</span>
+                  <span className="settings-row-name">{t("realTimeSync")}</span>
                   <span className={`settings-badge ${isLive ? "badge-success" : "badge-error"}`}>
                     <span className="badge-dot" />
-                    {isLive ? "ACTIVE" : "DISCONNECTED"}
+                    {isLive ? t("active") : t("disconnected")}
                   </span>
                 </div>
                 <div className="settings-row-actions">
                   <button className="settings-btn btn-secondary" onClick={() => { onReload(); onClose(); }}>
-                    &#8635; Manual Reload
+                    &#8635; {t("manualReload")}
                   </button>
                 </div>
               </div>
               <div className="settings-row" style={{ marginTop: "10px" }}>
                 <div className="settings-row-label">
-                  <span className="settings-row-name">Custom Save File</span>
-                  <span className="settings-row-hint">Override the default save location</span>
+                  <span className="settings-row-name">{t("customSaveFile")}</span>
+                  <span className="settings-row-hint">{t("customSaveFileHint")}</span>
                 </div>
                 <div className="settings-row-actions">
                   <button className="settings-btn btn-secondary" onClick={() => { onSelectFile(); onClose(); }}>
-                    &#128194; Select Save File
+                    &#128194; {t("selectSaveFile")}
                   </button>
                 </div>
               </div>
@@ -331,14 +329,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* Application Settings */}
             <section className="settings-section">
-              <h3 className="settings-section-title">Application Settings</h3>
+              <h3 className="settings-section-title">{t("appSettingsTitle")}</h3>
               <p className="settings-section-desc">
-                Configure how the application behaves when closing the window.
+                {t("appSettingsDesc")}
               </p>
               <div className="settings-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div className="settings-row-label">
-                  <span className="settings-row-name">Close to Tray</span>
-                  <span className="settings-row-hint">Keep running in the system tray when closed</span>
+                  <span className="settings-row-name">{t("closeToTray")}</span>
+                  <span className="settings-row-hint">{t("closeToTrayHint")}</span>
                 </div>
                 <div className="settings-row-actions">
                   <input
@@ -349,21 +347,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   />
                 </div>
               </div>
+
+              {/* Language Selector */}
+              <div className="settings-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "10px" }}>
+                <div className="settings-row-label">
+                  <span className="settings-row-name">{t("languageLabel")}</span>
+                  <span className="settings-row-hint">{t("languageHint")}</span>
+                </div>
+                <div className="settings-row-actions">
+                  <select
+                    className="modal-select"
+                    value={language}
+                    onChange={(e) => onSetLanguage(e.target.value as "en" | "tr")}
+                    style={{ width: "120px" }}
+                  >
+                    <option value="en">English</option>
+                    <option value="tr">Türkçe</option>
+                  </select>
+                </div>
+              </div>
             </section>
 
             <div className="settings-divider" />
 
             {/* About */}
             <section className="settings-section">
-              <h3 className="settings-section-title">About</h3>
+              <h3 className="settings-section-title">{t("aboutTitle")}</h3>
               <div className="settings-about-card">
                 <div className="settings-about-logo">&#9889;</div>
                 <div className="settings-about-info">
                   <span className="settings-about-name">TBH Helper</span>
                   <span className="settings-about-version">v{appVersion}</span>
-                  <span className="settings-about-author">by <strong>Selim Arda &#199;evik</strong></span>
+                  <span className="settings-about-author">{t("by")} <strong>Selim Arda &#199;evik</strong></span>
                   <span className="settings-about-contact">
-                    For support &amp; suggestions:{" "}
+                    {t("supportSuggestions")}{" "}
                     <a href="mailto:selimardacevik@proton.me" className="settings-about-email">
                       selimardacevik@proton.me
                     </a>
@@ -383,10 +400,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   gap: "8px"
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", fontWeight: "bold", color: "#10b981" }}>
-                    <span>🚀 New version is available: {updateAvailable.name || updateAvailable.tag_name}</span>
+                    <span>🚀 {t("newVersionAlert", { version: updateAvailable.name || updateAvailable.tag_name })}</span>
                   </div>
                   <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: 0 }}>
-                    {downloading ? "Downloading and preparing to launch setup..." : error ? error : "An update is ready for installation."}
+                    {downloading ? t("downloadingUpdate") : error ? t("updateFailed") : t("updateReady")}
                   </p>
                   {!downloading && (
                     <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
@@ -403,7 +420,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           cursor: "pointer"
                         }}
                       >
-                        Update Now
+                        {t("updateNow")}
                       </button>
                       <button
                         onClick={openRelease}
@@ -417,7 +434,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           cursor: "pointer"
                         }}
                       >
-                        Yenilikleri Gör
+                        {t("seeWhatsNew")}
                       </button>
                     </div>
                   )}
@@ -429,25 +446,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* Privacy */}
             <section className="settings-section">
-              <h3 className="settings-section-title">Privacy &amp; Network</h3>
+              <h3 className="settings-section-title">{t("privacyNetworkTitle")}</h3>
               <div className="settings-privacy-card">
                 <div className="settings-privacy-row">
                   <span className="privacy-icon">&#127760;</span>
                   <div className="privacy-text">
-                    <strong>Steam Community Market</strong>
-                    <span>Fetches live item prices. No data is sent &mdash; read-only requests only.</span>
+                    <strong>{t("privacySteamTitle")}</strong>
+                    <span>{t("privacySteamDesc")}</span>
                   </div>
                 </div>
                 <div className="settings-privacy-row">
                   <span className="privacy-icon">&#128025;</span>
                   <div className="privacy-text">
-                    <strong>GitHub</strong>
-                    <span>Checks for app updates. Only the latest release version number is read.</span>
+                    <strong>{t("privacyGithubTitle")}</strong>
+                    <span>{t("privacyGithubDesc")}</span>
                   </div>
                 </div>
-                <div className="settings-privacy-notice">
-                  &#128274; Your <strong>save file</strong> and <strong>Steam cookies</strong> never leave your device. No analytics, no tracking, no third-party servers.
-                </div>
+                <div className="settings-privacy-notice" dangerouslySetInnerHTML={{ __html: t("privacyNotice") }} />
               </div>
             </section>
 
