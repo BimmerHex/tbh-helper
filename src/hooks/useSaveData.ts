@@ -49,8 +49,49 @@ function translateStatusMessage(msg: string, lang: "en" | "tr"): string {
 import tbhDataRaw from "../tbh_data.json";
 // @ts-ignore
 import tbhDataTrRaw from "../tbh_data_tr.json";
+import { getUniqueModKey } from "../components/GameTooltip";
 const tbhData: any = tbhDataRaw;
 const tbhDataTr: any = tbhDataTrRaw;
+
+const getItemCategory = (gearType: string | null, name: string | null): string => {
+  const t = gearType ? gearType.toUpperCase() : "";
+  const n = name ? name.toLowerCase() : "";
+  
+  if (
+    t === "BOW" || t === "CROSSBOW" || t === "STAFF" || t === "SCEPTER" ||
+    t === "AXE" || t === "HATCHET" || t === "SWORD" ||
+    n.includes("bow") || n.includes("crossbow") || n.includes("staff") ||
+    n.includes("scepter") || n.includes("axe") || n.includes("hatchet") ||
+    n.includes("sword")
+  ) {
+    return "weapon";
+  }
+  
+  if (
+    t === "TOME" || t === "ORB" || t === "SHIELD" ||
+    t === "ARROW" || t === "BOLT" ||
+    n.includes("tome") || n.includes("orb") ||
+    n.includes("shield") || n.includes("arrow") || n.includes("bolt")
+  ) {
+    return "offhand";
+  }
+  
+  if (
+    t === "AMULET" || t === "RING" || t === "EARRING" || t === "EARING" || t === "BRACER" ||
+    n.includes("amulet") || n.includes("ring") || n.includes("earring") || n.includes("bracer")
+  ) {
+    return "accessory";
+  }
+  
+  if (
+    t === "HELMET" || t === "GLOVES" || t === "ARMOR" || t === "BOOTS" ||
+    n.includes("helmet") || n.includes("gloves") || n.includes("armor") || n.includes("boots")
+  ) {
+    return "armor";
+  }
+  
+  return "materials";
+};
 
 export function useSaveData() {
   const [saveData, setSaveData] = useState<any>(null);
@@ -58,6 +99,8 @@ export function useSaveData() {
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [gradeFilter, setGradeFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [onlyUniqueFilter, setOnlyUniqueFilter] = useState(false);
   const [sortBy, setSortBy] = useState<SortType>("value");
   const [hideNoPriceItems, setHideNoPriceItems] = useState(false);
   const [statusMessage, setStatusMessage] = useState("Initializing...");
@@ -1053,6 +1096,17 @@ export function useSaveData() {
       list = list.filter((item) => item.grade.toLowerCase() === gradeFilter.toLowerCase());
     }
     
+    if (typeFilter !== "all") {
+      list = list.filter((item) => getItemCategory(item.gearType, item.name) === typeFilter);
+    }
+    
+    if (onlyUniqueFilter) {
+      list = list.filter((item) => {
+        const englishName = tbhData.names[item.itemKey] || item.name;
+        return !!getUniqueModKey(englishName, item.grade);
+      });
+    }
+    
     list.sort((a, b) => {
       if (sortBy === "value") {
         const priceA = a.price || 0;
@@ -1075,7 +1129,7 @@ export function useSaveData() {
     });
     
     return list;
-  }, [parsedSave, activeTab, searchQuery, gradeFilter, sortBy]);
+  }, [parsedSave, activeTab, searchQuery, gradeFilter, typeFilter, onlyUniqueFilter, sortBy]);
 
   // Market Explorer items
   const marketExplorerItems = useMemo<MarketItem[]>(() => {
@@ -1140,6 +1194,16 @@ export function useSaveData() {
       filtered = filtered.filter((item) => item.grade.toLowerCase() === gradeFilter.toLowerCase());
     }
     
+    if (typeFilter !== "all") {
+      filtered = filtered.filter((item) => getItemCategory(item.gearType, item.name) === typeFilter);
+    }
+    
+    if (onlyUniqueFilter) {
+      filtered = filtered.filter((item) => {
+        return !!getUniqueModKey(item.name, item.grade);
+      });
+    }
+    
     filtered.sort((a, b) => {
       if (sortBy === "value") {
         return (b.price || 0) - (a.price || 0);
@@ -1157,7 +1221,7 @@ export function useSaveData() {
     });
     
     return filtered;
-  }, [prices, searchQuery, gradeFilter, sortBy, hideNoPriceItems, language]);
+  }, [prices, searchQuery, gradeFilter, typeFilter, onlyUniqueFilter, sortBy, hideNoPriceItems, language]);
 
   // Analytics Computations
   const analyticsData = useMemo<AnalyticsData | null>(() => {
@@ -1234,6 +1298,10 @@ export function useSaveData() {
     setSearchQuery,
     gradeFilter,
     setGradeFilter,
+    typeFilter,
+    setTypeFilter,
+    onlyUniqueFilter,
+    setOnlyUniqueFilter,
     sortBy,
     setSortBy,
     hideNoPriceItems,

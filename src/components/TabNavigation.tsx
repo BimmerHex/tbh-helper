@@ -11,6 +11,10 @@ interface TabNavigationProps {
   setSearchQuery: (q: string) => void;
   gradeFilter: string;
   setGradeFilter: (g: string) => void;
+  typeFilter: string;
+  setTypeFilter: (t: string) => void;
+  onlyUniqueFilter: boolean;
+  setOnlyUniqueFilter: (v: boolean) => void;
   sortBy: SortType;
   setSortBy: (s: SortType) => void;
   hideNoPriceItems: boolean;
@@ -24,6 +28,10 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
   setSearchQuery,
   gradeFilter,
   setGradeFilter,
+  typeFilter,
+  setTypeFilter,
+  onlyUniqueFilter,
+  setOnlyUniqueFilter,
   sortBy,
   setSortBy,
   hideNoPriceItems,
@@ -76,6 +84,18 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
             ))}
           </select>
           <select 
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="select-input"
+          >
+            <option value="all">{t("allTypes")}</option>
+            <option value="weapon">{t("typeWeapon")}</option>
+            <option value="offhand">{t("typeOffhand")}</option>
+            <option value="armor">{t("typeArmor")}</option>
+            <option value="accessory">{t("typeAccessory")}</option>
+            <option value="materials">{t("typeMaterials")}</option>
+          </select>
+          <select 
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortType)}
             className="select-input"
@@ -84,6 +104,28 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
             <option value="name">{t("sortByName")}</option>
             <option value="grade">{t("sortByRarity")}</option>
           </select>
+          <label style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            fontSize: "13px",
+            color: "var(--text-muted)",
+            cursor: "pointer",
+            userSelect: "none",
+            whiteSpace: "nowrap",
+            padding: "4px 8px"
+          }}>
+            <input
+              type="checkbox"
+              checked={onlyUniqueFilter}
+              onChange={(e) => setOnlyUniqueFilter(e.target.checked)}
+              style={{
+                cursor: "pointer",
+                accentColor: "#ff8000"
+              }}
+            />
+            {t("onlyUniqueMods")}
+          </label>
 
           {activeTab === "market" && (
             <button

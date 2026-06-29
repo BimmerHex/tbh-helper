@@ -67,6 +67,10 @@ export default function App() {
     setSearchQuery,
     gradeFilter,
     setGradeFilter,
+    typeFilter,
+    setTypeFilter,
+    onlyUniqueFilter,
+    setOnlyUniqueFilter,
     sortBy,
     setSortBy,
     hideNoPriceItems,
@@ -204,6 +208,10 @@ export default function App() {
         setSearchQuery={setSearchQuery}
         gradeFilter={gradeFilter}
         setGradeFilter={setGradeFilter}
+        typeFilter={typeFilter}
+        setTypeFilter={setTypeFilter}
+        onlyUniqueFilter={onlyUniqueFilter}
+        setOnlyUniqueFilter={setOnlyUniqueFilter}
         sortBy={sortBy}
         setSortBy={setSortBy}
         hideNoPriceItems={hideNoPriceItems}

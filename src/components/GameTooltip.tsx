@@ -1,13 +1,143 @@
 import { useState, useRef, useLayoutEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { TbhItem } from "../types";
 import { getClassRestriction, getSlotLimits, getInherentStats, getInherentOptions, formatEnchantOrSlot, getTierColor } from "../utils";
-import { GRADE_MAP, GRADE_COLORS } from "../constants";
+import { GRADE_MAP, GRADE_COLORS, GRADE_RANK } from "../constants";
 import "../styles/tooltip.css";
 
 // @ts-ignore
 import tbhDataRaw from "../tbh_data.json";
 
 const tbhData: any = tbhDataRaw;
+
+export const getUniqueModKey = (englishName: string | null, grade: string): string | null => {
+  if (!englishName) return null;
+  const name = englishName.toLowerCase();
+  const gradeRank = GRADE_RANK[grade] || 1;
+
+  // --- WEAPONS ---
+  
+  if (name.includes("dimensional sword")) {
+    if (gradeRank === 10) return "shieldChargeReset";
+  }
+  if (name.includes("composite bow")) {
+    if (gradeRank === 6) return "projectileCountPlusOne";
+  }
+  if (name.includes("dusk bow")) {
+    if (gradeRank === 6) return "skewerShotBleed";
+  }
+  if (name.includes("witch staff")) {
+    if (gradeRank === 6) return "hydraSpeedIncrease";
+  }
+  if (name.includes("azure staff")) {
+    if (gradeRank === 6) return "projectileCountPlusOne";
+  }
+  if (name.includes("comet staff")) {
+    if (gradeRank === 6) return "iceOrbFreeze";
+  }
+  if (name.includes("limitless scepter")) {
+    if (gradeRank === 10) return "wrathOfHeavenHeal";
+  }
+  if (name.includes("complete crossbow")) {
+    if (gradeRank === 6) return "projectileCountPlusOne";
+  }
+  if (name.includes("exceptional crossbow")) {
+    if (gradeRank === 6) return "explosiveBoltDecrease";
+  }
+  if (name.includes("mystic crossbow")) {
+    if (gradeRank === 6) return "explosiveBoltDecrease";
+  }
+  if (name.includes("limitless crossbow")) {
+    if (gradeRank === 6) return "turretCooldownReduce";
+  }
+  if (name.includes("dimensional crossbow")) {
+    if (gradeRank === 6) return "explosiveBoltDecrease";
+    if (gradeRank === 8) return "turretAmountPlusOne";
+  }
+  if (name.includes("steel axe")) {
+    if (gradeRank === 6) return "steelAxe";
+  }
+  if (name.includes("limitless axe")) {
+    if (gradeRank === 8) return "axeSpinBleed";
+  }
+  if (name.includes("elite crossbow")) {
+    if (gradeRank === 8) return "turretAmountPlusOne";
+  }
+  if (name.includes("mystic bow")) {
+    if (gradeRank === 8) return "arrowRainCritReduce";
+  }
+
+  // --- OFF-HANDS ---
+
+  if (name.includes("heater shield")) {
+    if (gradeRank === 6) return "multistrikeCountPlusOne";
+  }
+  if (name.includes("heavy shield")) {
+    if (gradeRank === 6) return "basicAttackTriggerReduce";
+  }
+  if (name.includes("war shield")) {
+    if (gradeRank === 6) return "multistrikeCountPlusOne";
+  }
+  if (name.includes("elite shield")) {
+    if (gradeRank === 6) return "cooldownReduced";
+    if (gradeRank === 8) return "basicAttackTriggerReduce";
+  }
+  if (name.includes("mystic shield")) {
+    if (gradeRank === 6) return "cooldownReduced";
+    if (gradeRank === 8) return "multistrikeCountPlusOne";
+  }
+  if (name.includes("radiant shield")) {
+    if (gradeRank === 6) return "cooldownReduced";
+    if (gradeRank === 8) return "cooldownReduced";
+    if (gradeRank === 10) return "shieldChargeReset";
+  }
+  if (name.includes("dimensional shield")) {
+    if (gradeRank === 6) return "cooldownReduced";
+    if (gradeRank === 8) return "cooldownReduced";
+    if (gradeRank === 10) return "cooldownReduced";
+  }
+  if (name.includes("barbed arrow")) {
+    if (gradeRank === 6) return "basicAttackTriggerReduce";
+  }
+  if (name.includes("frozen orb")) {
+    if (gradeRank === 6) return "cooldownReduced";
+  }
+
+  // --- ARMOR & HELMETS & BOOTS ---
+
+  if (name.includes("knight boots")) {
+    if (gradeRank === 6) return "knightBoots";
+  }
+  if (name.includes("knight helmet")) {
+    if (gradeRank === 6) return "knightHelmet";
+  }
+  if (name.includes("chain helmet")) {
+    if (gradeRank === 6) return "skewerShotBleed";
+  }
+  if (name.includes("war helmet")) {
+    if (gradeRank === 6) return "iceOrbFreeze";
+  }
+  if (name.includes("rune helmet")) {
+    if (gradeRank === 6) return "explosiveBoltDecrease";
+    if (gradeRank === 8) return "arrowRainCritReduce";
+  }
+  if (name.includes("fate helmet")) {
+    if (gradeRank === 6) return "skewerShotBleed";
+    if (gradeRank === 8) return "turretAmountPlusOne";
+  }
+  if (name.includes("fighter's helmet")) {
+    if (gradeRank === 6) return "hydraSpeedIncrease";
+    if (gradeRank === 8) return "snowstormFrozenBonus";
+    if (gradeRank === 10) return "wrathOfHeavenHeal";
+  }
+  if (name.includes("dimensional helmet")) {
+    if (gradeRank === 6) return "skewerShotBleed";
+    if (gradeRank === 8) return "arrowRainCritReduce";
+    if (gradeRank === 10) return "shieldChargeReset";
+  }
+
+  return null;
+};
 
 interface GameTooltipProps {
   hoveredItem: TbhItem | null;
@@ -16,6 +146,7 @@ interface GameTooltipProps {
 }
 
 export const GameTooltip: React.FC<GameTooltipProps> = ({ hoveredItem, tooltipPos, activeTab }) => {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState({ x: -9999, y: -9999 });
 
@@ -48,6 +179,10 @@ export const GameTooltip: React.FC<GameTooltipProps> = ({ hoveredItem, tooltipPo
   const level = hoveredItem.level || props.l || null;
   const grade = hoveredItem.grade || GRADE_MAP[props.g] || "Common";
   const gradeColor = hoveredItem.gradeColor || GRADE_COLORS[grade] || GRADE_COLORS.Unknown;
+
+  const englishName = tbhData.names[hoveredItem.lookupKey] || null;
+  const uniqueModKey = getUniqueModKey(englishName, grade);
+  const hasUniqueMod = !!uniqueModKey;
 
   const activeEnchants = hoveredItem.enchantData
     ? hoveredItem.enchantData.filter((e: any) => e.StatType > 0 && e.Value > 0)
@@ -148,6 +283,22 @@ export const GameTooltip: React.FC<GameTooltipProps> = ({ hoveredItem, tooltipPo
                 <span className="game-option-text">{opt}</span>
               </div>
             ))}
+          </div>
+        </>
+      )}
+
+      {/* Unique Stats Section */}
+      {hasUniqueMod && (
+        <>
+          <div className="game-tooltip-divider" />
+          <div className="game-tooltip-section">
+            <div className="game-section-title unique">{t("uniqueStatTitle")}</div>
+            <div className="game-tooltip-option-row">
+              <span className="game-bullet">[-]</span>
+              <span className="game-option-text unique-stat-text">
+                {t(`uniqueMods.${uniqueModKey}`)}
+              </span>
+            </div>
           </div>
         </>
       )}

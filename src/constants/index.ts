@@ -39,21 +39,21 @@ export const GRADE_RANK: Record<string, number> = {
 };
 
 export const HERO_CLASS_NAMES: Record<number, string> = {
-  101: "Warrior",
+  101: "Knight",
   201: "Ranger",
   301: "Sorcerer",
   401: "Priest",
-  501: "Rogue",
-  601: "Warlock"
+  501: "Hunter",
+  601: "Slayer"
 };
 
 export const HERO_CLASS_NAMES_TR: Record<number, string> = {
-  101: "Savaşçı (Warrior)",
+  101: "Şövalye (Knight)",
   201: "Okçu (Ranger)",
   301: "Büyücü (Sorcerer)",
   401: "Rahip (Priest)",
-  501: "Suikastçı (Rogue)",
-  601: "Kara Büyücü (Warlock)"
+  501: "Avcı (Hunter)",
+  601: "Katil (Slayer)"
 };
 
 export const HERO_COLORS: Record<number, string> = {
