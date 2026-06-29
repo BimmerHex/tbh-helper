@@ -37,17 +37,23 @@ export const getClassRestriction = (gearType: string | null): { text: string; co
   
   switch (gearType.toUpperCase()) {
     case "SWORD":
+    case "SHIELD":
       return { text: "Knight Only", color: "#ef4444" };
     case "BOW":
+    case "ARROW":
       return { text: "Ranger Only", color: "#ef4444" };
     case "STAFF":
+    case "ORB":
       return { text: "Sorcerer Only", color: "#ef4444" };
     case "SCEPTER":
+    case "TOME":
       return { text: "Priest Only", color: "#ef4444" };
-    case "DAGGER":
-      return { text: "Rogue Only", color: "#ef4444" };
-    case "GRIMOIRE":
-      return { text: "Warlock Only", color: "#ef4444" };
+    case "CROSSBOW":
+    case "BOLT":
+      return { text: "Hunter Only", color: "#ef4444" };
+    case "AXE":
+    case "HATCHET":
+      return { text: "Slayer Only", color: "#ef4444" };
     default:
       return { text: "All Classes", color: "#4caf50" };
   }
@@ -78,12 +84,14 @@ export const getStatName = (statType: number): string => {
     case 25: return "Arttırılmış Savunma (Inc. Defense)";
     case 26: return "Maks HP Artışı (Inc. Max HP)";
     case 27: return "Maks MP Artışı (Inc. Max MP)";
+    case 49: return "Bekleme Süresi Azaltma (Cooldown Reduction)";
+    case 52: return "Yetenek Seviyesi (Skill Level)";
     default: return `Özellik #${statType}`;
   }
 };
 
 export const formatStatValue = (statType: number, value: number): string => {
-  const percentStats = [6, 7, 8, 9, 10, 17, 18, 19, 24, 25, 26, 27];
+  const percentStats = [6, 7, 8, 9, 10, 17, 18, 19, 24, 25, 26, 27, 49];
   const prefix = value > 0 ? "+" : "";
   const formatted = formatDecimal(value);
   if (percentStats.includes(statType)) {
@@ -93,7 +101,7 @@ export const formatStatValue = (statType: number, value: number): string => {
 };
 
 export const formatEnchantOrSlot = (ench: any): string => {
-  const isPercent = ench.ModType === 1 || [6, 7, 8, 9, 10, 16, 17, 18, 19, 24, 25, 26, 27].includes(ench.StatType);
+  const isPercent = ench.ModType === 1 || [6, 7, 8, 9, 10, 16, 17, 18, 19, 24, 25, 26, 27, 49].includes(ench.StatType);
   const prefix = ench.Value > 0 ? "+" : "";
   const displayVal = isPercent ? formatDecimal(Number((ench.Value / 10).toFixed(1))) : String(ench.Value);
   const suffix = isPercent ? "%" : "";
@@ -112,9 +120,10 @@ export const formatEnchantOrSlot = (ench: any): string => {
 
 export const getSlotLimits = (grade: string, gearType: string | null) => {
   const isJewelryOrArmorOrWeapon = [
-    "SWORD", "BOW", "STAFF", "SCEPTER", "DAGGER", "GRIMOIRE", "HELMET", "ARMOR", "GLOVES", "BOOTS",
-    "NECKLACE", "EARRING", "RING", "BRACELET", "BRACER", "AMULET"
-  ].includes(gearType || "");
+    "SWORD", "BOW", "CROSSBOW", "AXE", "HATCHET", "STAFF", "SCEPTER", "ORB", "TOME", "SHIELD", "ARROW", "BOLT",
+    "HELMET", "ARMOR", "GLOVES", "BOOTS",
+    "AMULET", "EARING", "EARRING", "RING", "BRACER", "BRACELET", "NECKLACE"
+  ].includes(gearType?.toUpperCase() || "");
   
   if (!isJewelryOrArmorOrWeapon) {
     return { decoration: 0, engraving: 0, inscription: 0 };
@@ -167,17 +176,30 @@ export const getInherentStats = (gearType: string | null, level: number | null, 
   const m = gradeMult[grade] || 1;
   
   const uGearType = gearType.toUpperCase();
-  if (uGearType === "SWORD" || uGearType === "BOW" || uGearType === "DAGGER") {
-    const isDagger = uGearType === "DAGGER";
-    stats.push({ name: "Attack Damage", value: `${Math.round(level * (isDagger ? 1.8 : 2) * m + 10)}` });
-    stats.push({ name: "Attack Per Second", value: uGearType === "SWORD" ? "1,27" : uGearType === "BOW" ? "1,45" : "1,50" });
-  } else if (uGearType === "STAFF" || uGearType === "SCEPTER" || uGearType === "GRIMOIRE") {
+  if (uGearType === "SWORD" || uGearType === "BOW" || uGearType === "CROSSBOW" || uGearType === "AXE" || uGearType === "HATCHET") {
+    const isAxeOrHatchet = ["AXE", "HATCHET"].includes(uGearType);
+    const isCrossbow = uGearType === "CROSSBOW";
+    let aps = "1,27"; // sword
+    if (uGearType === "BOW") aps = "1,45";
+    else if (isCrossbow) aps = "1,35";
+    else if (isAxeOrHatchet) aps = "1,50";
+    
+    stats.push({ name: "Attack Damage", value: `${Math.round(level * (isAxeOrHatchet ? 1.8 : 2) * m + 10)}` });
+    stats.push({ name: "Attack Per Second", value: aps });
+  } else if (uGearType === "STAFF" || uGearType === "SCEPTER" || uGearType === "ORB" || uGearType === "TOME") {
     const isScepter = uGearType === "SCEPTER";
-    const isGrimoire = uGearType === "GRIMOIRE";
-    stats.push({ name: "Magic Damage", value: `${Math.round(level * (isScepter ? 2.1 : isGrimoire ? 2.3 : 2.2) * m + 12)}` });
-    stats.push({ name: "Attack Per Second", value: isScepter ? "1,20" : isGrimoire ? "1,10" : "1,15" });
-  } else if (["HELMET", "ARMOR", "GLOVES", "BOOTS"].includes(uGearType)) {
-    stats.push({ name: "Defense", value: `${Math.round(level * 0.8 * m + 3)}` });
+    const isTome = uGearType === "TOME";
+    const isOrb = uGearType === "ORB";
+    let aps = "1,15"; // staff
+    if (isScepter) aps = "1,20";
+    else if (isTome) aps = "1,10";
+    else if (isOrb) aps = "1,30"; // orb
+    
+    stats.push({ name: "Magic Damage", value: `${Math.round(level * (isScepter ? 2.1 : isTome ? 2.3 : isOrb ? 2.0 : 2.2) * m + 12)}` });
+    stats.push({ name: "Attack Per Second", value: aps });
+  } else if (["HELMET", "ARMOR", "GLOVES", "BOOTS", "SHIELD"].includes(uGearType)) {
+    const isShield = uGearType === "SHIELD";
+    stats.push({ name: "Defense", value: `${Math.round(level * (isShield ? 1.2 : 0.8) * m + 3)}` });
   }
   
   return stats;
@@ -207,16 +229,20 @@ export const getInherentOptions = (gearType: string | null, level: number | null
   const levelMult = level / 10;
   const uGearType = gearType.toUpperCase();
   
-  if (["SWORD", "BOW", "DAGGER", "STAFF"].includes(uGearType)) {
+  const physicalWeapons = ["SWORD", "BOW", "CROSSBOW", "AXE", "HATCHET"];
+  const magicalWeapons = ["STAFF", "SCEPTER", "ORB", "TOME"];
+  const armors = ["HELMET", "ARMOR", "GLOVES", "BOOTS", "SHIELD"];
+  
+  if (physicalWeapons.includes(uGearType) || magicalWeapons.includes(uGearType)) {
     const incDmg = Math.round(15 + levelMult * 10);
     const critChance = formatDecimal((1.5 + levelMult * 0.8).toFixed(1));
     const flatDmg = Math.round(5 + levelMult * 12);
     
-    const isStaff = uGearType === "STAFF";
-    if (count >= 1) options.push(`${incDmg}% ${isStaff ? "Increased Magic Damage" : "Increased Attack Damage"}`);
+    const isMagic = magicalWeapons.includes(uGearType);
+    if (count >= 1) options.push(`${incDmg}% ${isMagic ? "Increased Magic Damage" : "Increased Attack Damage"}`);
     if (count >= 2) options.push(`Critical Chance +${critChance}%`);
-    if (count >= 3) options.push(`${isStaff ? "Magic Damage" : "Attack Damage"} +${flatDmg}`);
-  } else if (["HELMET", "ARMOR", "GLOVES", "BOOTS"].includes(uGearType)) {
+    if (count >= 3) options.push(`${isMagic ? "Magic Damage" : "Attack Damage"} +${flatDmg}`);
+  } else if (armors.includes(uGearType)) {
     const incDef = Math.round(10 + levelMult * 8);
     const hpBonus = Math.round(20 + levelMult * 35);
     const dmgRed = formatDecimal((1 + levelMult * 0.5).toFixed(1));
